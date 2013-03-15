@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css"
+  href="http://fonts.googleapis.com/css?family=Source+Sans+Pro">
+<style>
+div {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+select {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.axis line, .axis path {
+  fill: none;
+  shape-rendering: crispEdges;
+  stroke: lightgrey;
+}
+.axis text {
+  fill: grey;
+  font-family: "Source Sans Pro", sans-serif;
+  font-size: 10px;
+}
+.bar {
+  fill: steelblue;
+}
+</style>
+<body>
+<div>
+  <select>
+    <option>2011</option>
+    <option>2010</option>
+  </select>
+</div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="barchart.js"></script>
+<script>
+
+var map = d3.map(),
+    barchart;
+
+d3.csv("motorbikes_tested.csv", function(error, data) {
+
+  data.forEach(function(d){ d.tested = +d.tested; });
+
+  data = d3.nest()
+      .key(function(d){ return d.year; })
+      .entries(data)
+
+  data.forEach(function(d) {
+
+    var total = d3.sum(d.values, function(d){ return d.tested; });
+
+    d.values.forEach(function(d){ d.prop = d.tested / total; });
+
+    d.values.sort(function(a, b){ return d3.descending(a.prop, b.prop); });
+
+    d.values = d.values.filter(function(d){ return d.make != "UNCLASSIFIED"; });
+
+    map.set(d.key, d.values);
+
+  });
+
+  barchart = d3.svg.barchart()
+      .margin({top: 10, right: 10, bottom: 40, left: 40})
+      .tickFormat(d3.format("%"))
+      .x(function(d){ return d.make; })
+      .y(function(d){ return d.prop; })
+      .yDomain([0, 0.25]);
+
+  d3.select("div")
+      .datum(map.get("2011").slice(0, 10))
+      .call(barchart);
+
+});
+
+d3.select("select").on("change", function() {
+
+  d3.select("div")
+      .datum(map.get(this.value).slice(0, 10))
+      .call(barchart);
+
+});
+
+</script>
+</body>
