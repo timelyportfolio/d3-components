@@ -47,7 +47,7 @@ d3.svg.barchart = function() {
           .tickFormat(tickFormat ? tickFormat : null);
 
       // create scaffolding
-      var svg = d3.select(this).selectAll("svg").data([datum]);
+      var svg = d3.select(this).selectAll("svg").data([data]);
 
       // select containing group
       var g = svg.enter().append("svg")
@@ -57,7 +57,7 @@ d3.svg.barchart = function() {
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       g.append("g").attr("class", "bars");
-      g.append("g").attr("class", "x axis");
+      g.append("g").attr("class", "x axis").attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")");
       g.append("g").attr("class", "y axis");
 
       // re-select containing group
@@ -87,19 +87,18 @@ d3.svg.barchart = function() {
       bar.transition()
           .delay(duration)
           .duration(duration)
+          .attr("x", function(d){ return xScale(d[0]); })
           .attr("y", function(d){ return yScale(d[1]); })
+          .attr("width", xScale.rangeBand())
           .attr("height", function(d){ return height - margin.top - margin.bottom - yScale(d[1]); });
 
       g.select(".x.axis")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + (height - margin.top - margin.bottom) + ")")
           .call(xAxis.scale(xScaleOld))
         .transition()
           .delay(duration)
           .call(xAxis.scale(xScale));
 
       g.select(".y.axis")
-          .attr("class", "y axis")
           .call(yAxis.scale(yScaleOld))
         .transition()
           .delay(duration)
